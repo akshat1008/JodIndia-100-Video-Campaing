@@ -7,7 +7,7 @@ st.title("🚀 Influencer Campaign System")
 
 # ---------- FILE PATHS ----------
 scripts_path = r"Scripts/Script_Distribution/script_distribution.csv"
-influencer_path = r"Influencers/influencers_master.csv"
+influencer_path = r"Scripts/Script_Distribution/influencers_master.csv"
 
 # ---------- LOAD DATA (FIXED) ----------
 scripts_df = pd.read_csv(scripts_path)
