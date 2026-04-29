@@ -7,16 +7,22 @@ st.title("🚀 Influencer Campaign System")
 
 # ---------- FILE PATHS ----------
 scripts_path = r"Scripts/Script_Distribution/script_distribution.csv"
-influencer_path = r"Scripts/Script_Distribution/influencers_master.csv"
+influencer_path = r"Influencers/influencers_master.csv"
 
-# ---------- LOAD DATA ----------
+# ---------- LOAD DATA (FIXED) ----------
 scripts_df = pd.read_csv(scripts_path)
-inf_df = pd.read_csv(influencer_path)
+inf_df = pd.read_csv(influencer_path).fillna("")
 
-# ---------- CLEAN SCRIPT NUMBERS ----------
-scripts_df["Script Number"] = scripts_df["Script Name"].str.extract(r'(\d+)')
+# ---------- FORCE STRING TYPES (CRITICAL FIX) ----------
+for col in ["SCRIPT_SUGGESTIONS", "SCRIPT_SELECTED", "APPROVAL_STATUS"]:
+    if col not in inf_df.columns:
+        inf_df[col] = ""
+    inf_df[col] = inf_df[col].astype(str)
 
-# ---------- AUTO MATCH FUNCTION ----------
+# ---------- EXTRACT SCRIPT NUMBERS ----------
+scripts_df["Script Number"] = scripts_df["Script Name"].astype(str).str.extract(r'(\d+)')
+
+# ---------- MATCHING FUNCTION ----------
 def get_best_scripts(niche):
     matches = []
 
@@ -37,22 +43,17 @@ def get_best_scripts(niche):
 
     return ",".join([m[0] for m in matches[:3]])
 
-# ---------- ADD MISSING COLUMNS ----------
-for col in ["SCRIPT_SUGGESTIONS", "SCRIPT_SELECTED", "APPROVAL_STATUS"]:
-    if col not in inf_df.columns:
-        inf_df[col] = ""
-
-# ---------- AUTO FILL SUGGESTIONS ----------
+# ---------- AUTO GENERATE BUTTON ----------
 if st.sidebar.button("⚡ Auto Generate Script Suggestions"):
     inf_df["SCRIPT_SUGGESTIONS"] = inf_df["Niche"].apply(get_best_scripts)
     inf_df.to_csv(influencer_path, index=False)
-    st.success("Suggestions Generated!")
+    st.success("✅ Script Suggestions Generated")
 
 # ---------- TABS ----------
 tab1, tab2 = st.tabs(["📊 Script Niches", "🤝 Influencer Manager"])
 
 # ==============================
-# 📊 TAB 1: SCRIPT NICHE VIEW
+# 📊 SCRIPT TAB
 # ==============================
 with tab1:
 
@@ -67,7 +68,6 @@ with tab1:
 
     st.subheader("📋 Script Niche Table")
 
-    # Sidebar filter
     all_niches = pd.concat([
         df["Primary Niche"],
         df["Secondary Niche"],
@@ -90,7 +90,6 @@ with tab1:
 
     st.metric("Total Scripts Showing", len(filtered_df))
 
-    # Search
     search = st.text_input("Search Script")
 
     if search:
@@ -98,7 +97,7 @@ with tab1:
         st.dataframe(result)
 
 # ==============================
-# 🤝 TAB 2: INFLUENCER MANAGER
+# 🤝 INFLUENCER TAB
 # ==============================
 with tab2:
 
@@ -117,7 +116,7 @@ with tab2:
 
     # ---------- USED SCRIPTS ----------
     used_scripts = set(
-        inf_df["SCRIPT_SELECTED"].dropna().astype(str)
+        inf_df["SCRIPT_SELECTED"].astype(str)
     )
 
     # ---------- DISPLAY ----------
@@ -133,10 +132,11 @@ with tab2:
             st.write(f"📊 Engagement: {row['ENGAGEMENT RATE']}")
             st.write(f"🎯 Niche: {row['Niche']}")
 
-        # ---------- SCRIPT LOGIC ----------
-        suggestions = str(row["SCRIPT_SUGGESTIONS"]).split(",")
+        # ---------- CLEAN SUGGESTIONS ----------
+        suggestions = str(row["SCRIPT_SUGGESTIONS"]).replace("nan", "").split(",")
         suggestions = [s.strip() for s in suggestions if s.strip()]
 
+        # ---------- REMOVE USED SCRIPTS ----------
         available_scripts = [
             s for s in suggestions
             if s not in used_scripts or s == str(row["SCRIPT_SELECTED"])
@@ -185,7 +185,7 @@ with tab2:
     # ---------- SAVE ----------
     if st.button("💾 Save Changes"):
         inf_df.to_csv(influencer_path, index=False)
-        st.success("Saved successfully!")
+        st.success("✅ Changes Saved Successfully")
 
     # ---------- SUMMARY ----------
     st.subheader("📊 Summary")
