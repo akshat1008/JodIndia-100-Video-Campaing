@@ -7,7 +7,7 @@ st.set_page_config(page_title="Script Niche Dashboard", layout="wide")
 st.title("🎯 Script → Influencer Niche Mapping")
 
 # ---------- LOAD DATA ----------
-df = pd.read_csv(r"C:\JodIndia 100 Video Campaing\Scripts\Script_Distribution\script_distribution.csv")
+df = pd.read_csv(r"Scripts//Script_Distribution//script_distribution.csv")
 
 # ---------- KEEP ONLY REQUIRED COLUMNS ----------
 df = df[[
